@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Diabetes Risk Predictor — Enter your health metrics to get an AI-powered diabetes risk assessment instantly." />
+  <title>Diabetes Risk Predictor | AI Health Tool</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+
+  <div class="page-wrapper">
+
+    <!-- ── Header ── -->
+    <header class="header">
+      <div class="badge">
+        <span>🩺</span> AI-Powered Health Tool
+      </div>
+      <h1>Diabetes Risk Predictor</h1>
+      <p>Enter your health metrics below and get an instant AI-generated diabetes risk assessment.</p>
+    </header>
+
+    <!-- ── Main Card ── -->
+    <main class="card" role="main">
+
+      <!-- Body Measurements -->
+      <div class="section-label">⚖️ Body Measurements</div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="weight">Weight (kg)</label>
+          <input type="number" id="weight" placeholder="e.g. 70" step="0.1" min="1" max="300" />
+        </div>
+        <div class="field">
+          <label for="height">Height (cm)</label>
+          <input type="number" id="height" placeholder="e.g. 170" step="0.1" min="50" max="250" />
+        </div>
+        <div class="field">
+          <label for="bmi">BMI</label>
+          <input type="number" id="bmi" placeholder="e.g. 24.2" step="0.1" min="10" max="70" />
+        </div>
+        <div class="field">
+          <label for="blood_glucose">Blood Glucose (mg/dL)</label>
+          <input type="number" id="blood_glucose" placeholder="e.g. 110" min="40" max="500" />
+        </div>
+      </div>
+
+      <!-- Lifestyle -->
+      <div class="section-label">🏃 Lifestyle Factors</div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="physical_activity">Physical Activity (hrs/week)</label>
+          <input type="number" id="physical_activity" placeholder="e.g. 3" step="0.5" min="0" max="40" />
+        </div>
+        <div class="field">
+          <label for="sleep_hour">Sleep Hours (per night)</label>
+          <input type="number" id="sleep_hour" placeholder="e.g. 7" step="0.5" min="0" max="24" />
+        </div>
+
+        <div class="field">
+          <label for="stress_level">Stress Level</label>
+          <select id="stress_level">
+            <option value="" disabled selected>Select level...</option>
+            <option value="0">0 — Low</option>
+            <option value="1">1 — Moderate</option>
+            <option value="2">2 — High</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Health Habits -->
+      <div class="section-label">💊 Health Habits</div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="diet">Healthy Diet?</label>
+          <select id="diet">
+            <option value="" disabled selected>Select option...</option>
+            <option value="0">0 — No</option>
+            <option value="1">1 — Yes</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="medical_adherence">Takes Medication Regularly?</label>
+          <select id="medical_adherence">
+            <option value="" disabled selected>Select option...</option>
+            <option value="0">0 — No</option>
+            <option value="1">1 — Yes</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="hydration_level">Adequate Hydration?</label>
+          <select id="hydration_level">
+            <option value="" disabled selected>Select option...</option>
+            <option value="0">0 — No</option>
+            <option value="1">1 — Yes</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Predict Button -->
+      <button class="btn-predict" onclick="predict()" id="predictBtn" aria-label="Predict Diabetes Risk">
+        <span class="spinner" id="spinner"></span>
+        <span class="btn-icon">⚡</span>
+        <span class="btn-text">Predict Risk Now</span>
+      </button>
+
+      <!-- Result Box -->
+      <div id="result" role="alert" aria-live="polite"></div>
+
+      <!-- Info Strip -->
+      <div class="info-strip">
+        <div class="info-card">
+          <div class="ic-icon">🤖</div>
+          <div class="ic-label">Model</div>
+          <div class="ic-value">ML Trained</div>
+        </div>
+        <div class="info-card">
+          <div class="ic-icon">⚡</div>
+          <div class="ic-label">Speed</div>
+          <div class="ic-value">Instant</div>
+        </div>
+        <div class="info-card">
+          <div class="ic-icon">🔒</div>
+          <div class="ic-label">Privacy</div>
+          <div class="ic-value">100% Local</div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ── Footer ── -->
+    <footer class="footer">
+      <p>⚠️ This tool is for <strong>informational purposes only</strong>.</p>
+      <p>Always consult a qualified healthcare professional for medical advice.</p>
+    </footer>
+
+  </div><!-- /.page-wrapper -->
+
+  <script>
+    const FIELDS = [
+      'weight', 'height', 'blood_glucose', 'physical_activity',
+      'diet', 'medical_adherence', 'stress_level', 'sleep_hour',
+      'hydration_level', 'bmi'
+    ];
+
+    function getVal(id) {
+      return document.getElementById(id).value.trim();
+    }
+
+    function setInvalid(id, invalid) {
+      const el = document.getElementById(id);
+      if (invalid) el.classList.add('invalid');
+      else el.classList.remove('invalid');
+    }
+
+    function validate() {
+      let valid = true;
+      FIELDS.forEach(id => {
+        const val = getVal(id);
+        const empty = val === '' || isNaN(Number(val));
+        setInvalid(id, empty);
+        if (empty) valid = false;
+      });
+      return valid;
+    }
+
+    // Clear validation on input
+    FIELDS.forEach(id => {
+      document.getElementById(id).addEventListener('input', () => setInvalid(id, false));
+    });
+
+    function setLoading(on) {
+      const btn = document.getElementById('predictBtn');
+      const spinner = document.getElementById('spinner');
+      btn.classList.toggle('loading', on);
+      btn.disabled = on;
+      spinner.style.display = on ? 'inline-block' : 'none';
+    }
+
+    function showResult({ score, stateClass, emoji, label, message }) {
+      const div = document.getElementById('result');
+      div.className = '';
+      div.classList.add(stateClass);
+      div.style.display = 'block';
+      div.innerHTML = `
+        <div class="result-label">${emoji} ${label}</div>
+        <div class="result-score">${score}</div>
+        <div class="result-message">${message}</div>
+      `;
+    }
+
+    function getRiskInfo(score) {
+      if (score > 0.7) return {
+        stateClass: 'state-high', emoji: '🔴', label: 'High Risk',
+        message: 'Your metrics indicate a <strong>high risk</strong> of diabetes. Please consult a doctor as soon as possible.'
+      };
+      if (score > 0.4) return {
+        stateClass: 'state-medium', emoji: '🟡', label: 'Moderate Risk',
+        message: 'Your metrics suggest a <strong>moderate risk</strong>. Lifestyle improvements and a medical checkup are recommended.'
+      };
+      return {
+        stateClass: 'state-low', emoji: '🟢', label: 'Low Risk',
+        message: 'Great news! Your metrics indicate a <strong>low risk</strong> of diabetes. Keep maintaining your healthy lifestyle.'
+      };
+    }
+
+    async function predict() {
+      if (!validate()) {
+        const div = document.getElementById('result');
+        div.className = 'state-error';
+        div.style.display = 'block';
+        div.innerHTML = `<div class="result-label">⚠️ Incomplete Form</div>
+          <div class="result-message" style="margin-top:8px">Please fill in all fields with valid numbers before predicting.</div>`;
+        return;
+      }
+
+      setLoading(true);
+      document.getElementById('result').style.display = 'none';
+
+      const data = {};
+      FIELDS.forEach(id => data[id] = parseFloat(getVal(id)));
+
+      try {
+        const res = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (!res.ok) throw new Error('Server error: ' + res.status);
+
+        const json = await res.json();
+        const score = json.risk_score;
+        const riskInfo = getRiskInfo(score);
+
+        showResult({ score: score.toFixed ? score.toFixed(2) : score, ...riskInfo });
+
+      } catch (err) {
+        const div = document.getElementById('result');
+        div.className = 'state-error';
+        div.style.display = 'block';
+        div.innerHTML = `<div class="result-label">❌ Error</div>
+          <div class="result-message" style="margin-top:8px">Could not reach the server. Make sure the Flask app is running.</div>`;
+      } finally {
+        setLoading(false);
+      }
+    }
+  </script>
+
+</body>
+</html>
