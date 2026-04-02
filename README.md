@@ -22,16 +22,57 @@
 
 ## ✨ Features
 
-- 🤖 **ML-Powered Prediction** — Trained scikit-learn model gives real-time risk scores
-- ⚡ **Instant Results** — No page reload; results appear instantly via async API
-- 🔒 **100% Local & Private** — All data stays on your machine, nothing is sent to any cloud
-- 🎨 **Premium Dark UI** — Animated diabetes-themed floating background with glassmorphism card
-- 📱 **Fully Responsive** — Works beautifully on desktop and mobile
-- ✅ **Smart Validation** — Highlights missing or invalid fields before prediction
+- 🤖 **ML-Powered Prediction** — Tuned Gradient Boosting model gives accurate real-time risk scores.
+- ⚡ **Instant Results** — No page reload; results appear instantly via async API.
+- 🔒 **100% Local & Private** — All data stays on your machine, nothing is sent to any cloud.
+- 🎨 **Premium Dark UI** — Animated diabetes-themed floating background with a glassmorphism card.
+- 📱 **Fully Responsive** — Works beautifully on desktop and mobile browsers.
+- ✅ **Smart Validation** — Highlights missing or invalid fields before prediction.
 
 ---
 
-## 🖥️ Demo
+## 🔬 Machine Learning Model
+
+This project doesn't just use a basic model; it utilizes an optimized **Gradient Boosting Regressor** to predict the diabetes risk score with high accuracy. 
+
+Detailed implementation can be found in [`Diabetes.ipynb`](Diabetes.ipynb).
+
+### 1. Data Preparation
+- The dataset (`diabetes_data.csv`) contains 1,000 synthetic patient records.
+- **Features Extracted:** `weight`, `height`, `blood_glucose`, `physical_activity`, `diet`, `medication_adherence`, `stress_level`, `sleep_hours`, `hydration_level`, `bmi`.
+- **Target Variable:** `risk_score`
+
+### 2. Model Selection & Comparison
+Two models were initially evaluated on an 80/20 train-test split:
+- **Random Forest Regressor:** Achieved an $R^2$ score of `0.904` and a Cross-Validation score of `0.892`.
+- **Gradient Boosting Regressor:** Achieved a superior $R^2$ score of **`0.978`** and a Cross-Validation score of **`0.975`**.
+
+Due to its superior performance, **Gradient Boosting** was selected as the final algorithm.
+
+### 3. Hyperparameter Tuning
+To squeeze out even more performance, we utilized `RandomizedSearchCV` to find the optimal parameters across:
+- `n_estimators`: [50, 100, 150]
+- `learning_rate`: [0.01, 0.5, 0.1]
+- `max_depth`: [4, 5, 6]
+
+**Best Parameters Found:**
+```python
+GradientBoostingRegressor(n_estimators=50, learning_rate=0.5, max_depth=4)
+```
+
+### 4. Feature Importance
+Based on the tree-based model's feature importance analysis, the most critical features driving the diabetes risk score are:
+1. **BMI** (~35.4% importance)
+2. **Physical Activity** (~23.2% importance)
+3. **Blood Glucose** (~15.9% importance)
+4. **Diet** (~10.9% importance)
+
+### 5. Final Export
+The tuned Gradient Boosting model was exported using `joblib` into `diabetes_model.pkl`, which is loaded directly by the Flask API for real-time inference.
+
+---
+
+## 🖥️ User Interface
 
 | Input | Result |
 |-------|--------|
@@ -39,42 +80,6 @@
 | ✅ Low Risk `< 0.4` | 🟢 Green indicator |
 | ⚠️ Moderate Risk `0.4–0.7` | 🟡 Yellow indicator |
 | 🚨 High Risk `> 0.7` | 🔴 Red indicator |
-
----
-
-## 🧠 How It Works
-
-```
-User Input (10 features)
-        │
-        ▼
-   Flask API (/predict)
-        │
-        ▼
-  ML Model (sklearn)
-  diabetes_model.pkl
-        │
-        ▼
-  Risk Score (0.0 – 1.0)
-        │
-        ▼
-  Frontend Result Card
-```
-
-### 📊 Input Features
-
-| # | Feature | Description |
-|---|---------|-------------|
-| 1 | `weight` | Body weight in kg |
-| 2 | `height` | Height in cm |
-| 3 | `bmi` | Body Mass Index |
-| 4 | `blood_glucose` | Blood glucose level in mg/dL |
-| 5 | `physical_activity` | Weekly exercise hours |
-| 6 | `sleep_hour` | Average sleep hours per night |
-| 7 | `stress_level` | Stress level (0=Low, 1=Moderate, 2=High) |
-| 8 | `diet` | Healthy diet? (0=No, 1=Yes) |
-| 9 | `medical_adherence` | Takes medication regularly? (0=No, 1=Yes) |
-| 10 | `hydration_level` | Adequate hydration? (0=No, 1=Yes) |
 
 ---
 
@@ -126,9 +131,9 @@ Then open your browser at **http://127.0.0.1:5000** 🎉
 Diabetes_Risk_Prediction/
 │
 ├── app.py                  # Flask backend & prediction API
-├── diabetes_model.pkl      # Pre-trained scikit-learn ML model
+├── diabetes_model.pkl      # Pre-trained Gradient Boosting ML model
 ├── requirements.txt        # Python dependencies
-├── Diabetes.ipynb          # Model training notebook
+├── Diabetes.ipynb          # Model training, EDA, and tuning notebook
 │
 ├── Templates/
 │   └── index.html          # Main frontend page
@@ -168,29 +173,6 @@ Accepts a JSON body with 10 health features and returns a risk score.
   "risk_score": 0.82
 }
 ```
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology |
-|-------|-----------|
-| **Backend** | Python, Flask 3.0 |
-| **ML Model** | scikit-learn 1.4, joblib |
-| **Frontend** | HTML5, Vanilla CSS, JavaScript (ES6+) |
-| **Fonts** | Google Fonts – Inter |
-| **Deployment** | Local (Flask dev server) |
-
----
-
-## 📓 Model Training
-
-The ML model was trained in [`Diabetes.ipynb`](Diabetes.ipynb). Key steps:
-
-1. Data loading and exploratory analysis
-2. Feature engineering and preprocessing
-3. Model selection and training (scikit-learn)
-4. Evaluation and export with `joblib`
 
 ---
 
